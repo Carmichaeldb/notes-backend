@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "test": "test"
+    "test": "test",
+    "dbreset": "psql -U notesdev -d notes_db < ./db/schema/schema.sql && psql -U notesdev -d notes_db < ./db/schema/seeds.sql"
   },
   "author": "David Carmichael",
   "license": "ISC",
