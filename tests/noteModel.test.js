@@ -90,17 +90,17 @@ describe('Note Model query tests', () => {
     // Tests to update a note
     describe('Update a note successfully', () => {
         it('should return the updated note', async () => {
-            const result = await noteModel.updateUserNote(1, 1, 'Updated Note', 'This is an updated note');
-            expect(result).toHaveProperty('id', 1);
+            const result = await noteModel.updateUserNote(1, testNoteId, 'Updated Note', 'This is an updated note, search this: Raven');
+            expect(result).toHaveProperty('id', testNoteId);
             expect(result).toHaveProperty('title', 'Updated Note');
-            expect(result).toHaveProperty('content', 'This is an updated note');
+            expect(result).toHaveProperty('content', 'This is an updated note, search this: Raven');
             expect(result).toHaveProperty('updated_at');
         });
     });
 
     describe('Fail to update a note', () => {
         it('should return an error', async () => {
-           try { await noteModel.updateUserNote(999, 1, 'Updated Note', 'This is an updated note');
+           try { await noteModel.updateUserNote(999, testNoteId, 'Updated Note', 'This is an updated note');
                 fail('Expected an error to be thrown');
             } catch (error) {
                 expect(error.message).toBe('User does not exist');
@@ -126,6 +126,55 @@ describe('Note Model query tests', () => {
                 fail('Expected an error to be thrown');
             } catch (error) {
                 expect(error.message).toBe('User does not exist');
+            }
+        });
+    });
+
+    // Tests to search for a note
+    describe('Search for a note by title successfully', () => {
+        it('should return the searched note', async () => {
+            const result = await noteModel.searchUserNotes(1, 'Updated Note');
+            expect(result).toHaveLength(1);
+            result.forEach(note => {
+                expect(note).toHaveProperty('id');
+                expect(note).toHaveProperty('title', 'Updated Note');
+                expect(note).toHaveProperty('content');
+                expect(note).toHaveProperty('created_at');
+                expect(note).toHaveProperty('updated_at');
+            });
+        });
+    });
+
+    describe('Search for a note by content successfully', () => {
+        it('should return the searched note', async () => {
+            const result = await noteModel.searchUserNotes(1, 'Raven');
+            expect(result).toHaveLength(1);
+            result.forEach(note => {
+                expect(note).toHaveProperty('id');
+                expect(note).toHaveProperty('title');
+                expect(note).toHaveProperty('content', 'This is an updated note, search this: Raven');
+                expect(note).toHaveProperty('created_at');
+                expect(note).toHaveProperty('updated_at');
+            });
+        });
+    });
+
+    describe('Fail to search for a note', () => {
+        it('should return an error', async () => {
+            try { await noteModel.searchUserNotes(1, 'Failed Note');
+                fail('Expected an error to be thrown');
+            } catch (error) {
+                expect(error.message).toBe('Note not found');
+            }
+        });
+    });
+
+    describe('Fail to search for a other users non-shared notes', () => {
+        it('should return an error', async () => {
+            try { await noteModel.searchUserNotes(3, 'Updated Note');
+                fail('Expected an error to be thrown');
+            } catch (error) {
+                expect(error.message).toBe('Note not found');
             }
         });
     });

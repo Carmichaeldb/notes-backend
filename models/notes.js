@@ -114,6 +114,23 @@ const shareUserNote = async (userId, noteId, sharedWith) => {
 
 // Search Notes for User
 const searchUserNotes = async (userId, searchTerm) => {
+    try {
+        const result = await pool.query(`
+            SELECT DISTINCT notes.* 
+            FROM notes 
+            LEFT JOIN shared_notes ON notes.id = shared_notes.note_id
+            WHERE (notes.user_id = $1 OR shared_notes.shared_with = $1)
+            AND (title ILIKE $2 OR content ILIKE $2)
+            ORDER BY notes.created_at DESC`,
+            [userId, `%${searchTerm}%`]
+        );
+        if (result.rows.length === 0) {
+            throw new Error('Note not found');
+        }
+        return result.rows;
+    } catch (error) {
+        throw error;
+    }
 }
 
 module.exports = {
