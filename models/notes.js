@@ -108,6 +108,7 @@ const searchUserNotes = async (userId, searchTerm) => {
         }
         return result.rows;
     } catch (error) {
+        console.error('Error searching user notes:', error);
         throw error;
     }
 }
