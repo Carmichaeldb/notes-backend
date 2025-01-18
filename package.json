@@ -4,6 +4,8 @@
   "description": "Tech Assessment for Speer",
   "main": "index.js",
   "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
     "test": "test"
   },
   "author": "David Carmichael",
@@ -12,5 +14,8 @@
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "pg": "^8.13.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9"
   }
 }
