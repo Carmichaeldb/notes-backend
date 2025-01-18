@@ -2,9 +2,15 @@ require('dotenv').config();
 const noteModel = require('../models/notes');
 const db = require('../db/db');
 
+
 describe('Note Model query tests', () => {
+    let testNoteId;
 
     afterAll(async () => {
+        // Delete test note if still exists (due to failed test)
+        if (testNoteId) {
+            await db.query('DELETE FROM notes WHERE id = $1', [testNoteId]);
+        }
         await db.end();
     });
 
@@ -54,6 +60,93 @@ describe('Note Model query tests', () => {
         it('should return an empty array', async () => {
             const result = await noteModel.getSharedNotes(999);
             expect(result).toHaveLength(0);
+        });
+    });
+
+    // Tests to create a note
+    describe('Create a note successfully', () => {
+        it('should return the created note', async () => {
+            const result = await noteModel.createUserNote(1, 'Test Note', 'This is a test note');
+            expect(result).toHaveProperty('id');
+            expect(result).toHaveProperty('title', 'Test Note');
+            expect(result).toHaveProperty('content', 'This is a test note');
+            expect(result).toHaveProperty('created_at');
+            expect(result).toHaveProperty('updated_at');
+            testNoteId = result.id;
+        });
+    });
+
+    describe('Fail to create a note', () => {
+        it('should return an error', async () => {
+            try {
+                await noteModel.createUserNote(999, 'Test Note', 'This is a test note');
+                fail('Expected an error to be thrown');
+            } catch (error) {
+                expect(error.message).toBe('User does not exist');
+            }
+        });
+    });
+
+    // Tests to update a note
+    describe('Update a note successfully', () => {
+        it('should return the updated note', async () => {
+            const result = await noteModel.updateUserNote(1, 1, 'Updated Note', 'This is an updated note');
+            expect(result).toHaveProperty('id', 1);
+            expect(result).toHaveProperty('title', 'Updated Note');
+            expect(result).toHaveProperty('content', 'This is an updated note');
+            expect(result).toHaveProperty('updated_at');
+        });
+    });
+
+    describe('Fail to update a note', () => {
+        it('should return an error', async () => {
+           try { await noteModel.updateUserNote(999, 1, 'Updated Note', 'This is an updated note');
+                fail('Expected an error to be thrown');
+            } catch (error) {
+                expect(error.message).toBe('User does not exist');
+            }
+        });
+    });
+
+    // Tests to share a note
+    describe('Share a note successfully', () => {
+        it('should return the shared note', async () => {
+            const result = await noteModel.shareUserNote(1, testNoteId, 2);
+            expect(result).toHaveProperty('id');
+            expect(result).toHaveProperty('note_id', testNoteId);
+            expect(result).toHaveProperty('shared_with', 2);
+            expect(result).toHaveProperty('shared_by', 1);
+            expect(result).toHaveProperty('created_at');
+        });
+    });
+
+    describe('Fail to share a note', () => {
+        it('should return an error', async () => {
+            try { await noteModel.shareUserNote(999, testNoteId, 2);
+                fail('Expected an error to be thrown');
+            } catch (error) {
+                expect(error.message).toBe('User does not exist');
+            }
+        });
+    });
+
+    // Tests to delete a note
+    describe('Delete test note successfully', () => {
+        it('should successfully delete the test note', async () => {
+            const result = await noteModel.deleteUserNote(1, testNoteId);
+            expect(result.id).toBe(testNoteId);
+            const checkNote = await noteModel.getUsersNotes(1);
+            expect(checkNote).toHaveLength(1);
+        });
+    });
+
+    describe('Fail to delete a note', () => {
+        it('should return an error', async () => {
+            try { await noteModel.deleteUserNote(999, 1);
+                fail('Expected an error to be thrown');
+            } catch (error) {
+                expect(error.message).toBe('User does not exist');
+            }
         });
     });
 });
