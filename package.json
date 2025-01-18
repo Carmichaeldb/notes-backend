@@ -1,0 +1,16 @@
+{
+  "name": "notes-backend",
+  "version": "1.0.0",
+  "description": "Tech Assessment for Speer",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "author": "David Carmichael",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "pg": "^8.13.1"
+  }
+}
