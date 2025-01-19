@@ -62,7 +62,20 @@ const createUser = async (username, email, password) => {
             throw new Error('User already exists');
         }
         const result = await pool.query('INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING *', [username, email, password]);
-        return result.rows[0];
+        const user = result.rows[0];
+        const token = jwt.sign(
+            { id: user.id, username: user.username },
+            process.env.JWT_SECRET,
+            { expiresIn: '24h' }
+        );
+        return {
+            user: {
+                id: user.id,
+                username: user.username,
+                email: user.email
+            },
+            token
+        };
     } catch (error) {
         console.error('Error creating user:', error);
         throw error;

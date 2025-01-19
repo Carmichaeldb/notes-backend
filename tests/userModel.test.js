@@ -35,12 +35,14 @@ describe('User Model', () => {
 
     // Create User
     describe('Create User', () => {
-        it('should create a user', async () => {
+        it('should create a user and issue token', async () => {
             const result = await userModel.createUser('testuser', 'test@test.com', 'testpassword');
-            expect(result).toHaveProperty('id');
-            expect(result).toHaveProperty('username');
-            expect(result).toHaveProperty('password');
-            testUserId = result.id;
+            expect(result).toHaveProperty('user');
+            expect(result).toHaveProperty('token');
+            expect(result.user).toHaveProperty('id');
+            expect(result.user).toHaveProperty('username');
+            expect(result.user).not.toHaveProperty('password');
+            testUserId = result.user.id;
         });
     });
     
