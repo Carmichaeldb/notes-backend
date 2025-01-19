@@ -162,13 +162,14 @@ const shareUserNote = async (userId, noteId, sharedWith) => {
 const searchUserNotes = async (userId, searchTerm) => {
     try {
         const result = await pool.query(`
-            SELECT DISTINCT notes.* 
+            SELECT DISTINCT notes.*,
+            ts_rank(notes.search_vector, plainto_tsquery('english', $2)) as rank 
             FROM notes 
             LEFT JOIN shared_notes ON notes.id = shared_notes.note_id
             WHERE (notes.user_id = $1 OR shared_notes.shared_with = $1)
-            AND (title ILIKE $2 OR content ILIKE $2)
-            ORDER BY notes.created_at DESC`,
-            [userId, `%${searchTerm}%`]
+            AND notes.search_vector @@ plainto_tsquery('english', $2)
+            ORDER BY rank DESC`,
+            [userId, searchTerm]
         );
         return result.rows;
     } catch (error) {
