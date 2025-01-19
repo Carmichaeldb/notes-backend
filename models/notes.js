@@ -39,9 +39,18 @@ const getSharedNotes = async (userId) => {
     }
 }
 
-const getNoteById = async (noteId) => {
+const getNoteById = async (userId,noteId) => {
     try {
-        const result = await pool.query('SELECT * FROM notes WHERE id = $1', [noteId]);
+        await checkUser(userId);
+
+        const result = await pool.query(`
+            SELECT notes.* 
+            FROM notes 
+            LEFT JOIN shared_notes ON notes.id = shared_notes.note_id
+            WHERE notes.id = $1 
+            AND (notes.user_id = $2 OR shared_notes.shared_with = $2)`,
+            [noteId, userId]
+        );
         if (result.rows.length === 0) {
             throw new Error('Note not found');
         }

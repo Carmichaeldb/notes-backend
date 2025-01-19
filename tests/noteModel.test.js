@@ -66,7 +66,7 @@ describe('Note Model query tests', () => {
     // Tests to get a note by id
     describe('Get note by id successfully', () => {
         it('should return the note', async () => {
-            const result = await noteModel.getNoteById(1);
+            const result = await noteModel.getNoteById(1, 1);
             expect(result).toHaveProperty('id', 1);
             expect(result).toHaveProperty('title');
             expect(result).toHaveProperty('content');
@@ -77,7 +77,17 @@ describe('Note Model query tests', () => {
 
     describe('Fail to get non-existent note', () => {
         it('should return an error', async () => {
-            try { await noteModel.getNoteById(999);
+            try { await noteModel.getNoteById(1, 999);
+                fail('Expected an error to be thrown');
+            } catch (error) {
+                expect(error.message).toBe('Note not found');
+            }
+        });
+    });
+
+    describe('fail to get note by id for other users', () => {
+        it('should return an error', async () => {
+            try { await noteModel.getNoteById(3, 1);
                 fail('Expected an error to be thrown');
             } catch (error) {
                 expect(error.message).toBe('Note not found');
