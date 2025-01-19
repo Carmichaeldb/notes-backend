@@ -7,31 +7,62 @@ const authToken = require('../middleware/auth');
 router.use(authToken);
 
 // Get all notes
-router.get('/api/notes', async (req, res) => {
+router.get('/notes', async (req, res) => { 
+    try {
+        const notes = await noteModel.getUsersNotes(req.user.id);
+        res.status(200).json(notes);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
 // Get specific note
-router.get('/api/notes/:id', async (req, res) => {
+router.get('/notes/:id', async (req, res) => {
+    try {
+        const note = await noteModel.getNoteById(req.user.id, req.params.id);
+        // Check if note belongs to user
+        if (note.user_id !== req.user.id) {
+            return res.status(403).json({ error: 'Access denied' });
+        }
+        
+        res.status(200).json(note);
+    } catch (error) {
+            res.status(404).json({ error: error.message });
+    }
 });
 
 // Create note
-router.post('/api/notes', async (req, res) => {
+router.post('/notes', async (req, res) => {
+    try {
+        const { title, content } = req.body;
+        const note = await noteModel.createUserNote(req.user.id, title, content);
+        res.status(201).json(note);
+    } catch (error) {
+        res.status(404).json({ error: error.message });
+    }
 });
 
 // Update note
-router.put('/api/notes/:id', async (req, res) => {
+router.put('/notes/:id', async (req, res) => {
+    try {
+        const { title, content } = req.body;
+        const note = await noteModel.updateUserNote(req.user.id, req.params.id, title, content);
+        res.status(200).json(note);
+    } catch (error) {
+        res.status(404).json({ error: error.message });
+    }
 });
 
 // Delete note
-router.delete('/api/notes/:id', async (req, res) => {
+router.delete('/notes/:id', async (req, res) => {
 });
 
 // Share note
-router.post('/api/notes/:id/share', async (req, res) => {
+router.post('/notes/:id/share', async (req, res) => {
 });
 
 // Search notes
-router.get('/api/search', async (req, res) => {
+router.get('/search', async (req, res) => {
 });
 
 module.exports = router;

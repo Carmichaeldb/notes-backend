@@ -41,8 +41,6 @@ const getSharedNotes = async (userId) => {
 
 const getNoteById = async (userId,noteId) => {
     try {
-        await checkUser(userId);
-
         const result = await pool.query(`
             SELECT notes.* 
             FROM notes 
@@ -66,10 +64,14 @@ const createUserNote = async (userId, title, content) => {
     try {
         await checkUser(userId);
 
+        if (!title || !content) {
+            throw new Error('Missing required fields');
+        }
+
         const result = await pool.query('INSERT INTO notes (user_id, title, content) VALUES ($1, $2, $3) RETURNING *', [userId, title, content]);
         return result.rows[0];
     } catch (error) {
-        console.error('Error creating user note:', error);
+        // console.error('Error creating user note:', error);
         throw error;
     }
 }
@@ -78,6 +80,19 @@ const createUserNote = async (userId, title, content) => {
 const updateUserNote = async (userId, noteId, title, content) => {
     try {
         await checkUser(userId);
+
+        if (!title || !content) {
+            throw new Error('Missing required fields');
+        }
+
+        const noteCheck = await pool.query(
+            'SELECT * FROM notes WHERE id = $1 AND user_id = $2',
+            [noteId, userId]
+        );
+
+        if (noteCheck.rows.length === 0) {
+            throw new Error('Note not found');
+        }
 
         const result = await pool.query('UPDATE notes SET title = $1, content = $2 WHERE id = $3 AND user_id = $4 RETURNING *', [title, content, noteId, userId]);
         return result.rows[0];
