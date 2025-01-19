@@ -92,7 +92,17 @@ describe('User Routes', () => {
     });
 
     describe('Fails to login in user', () => {
-        it('should return an error', async () => {
+        it('should return an error, wrong email', async () => {
+            const response = await request(app).post('/api/auth/login').send({
+                username: 'wrongusername',
+                password: 'testpassword'
+            });
+            expect(response.status).toBe(401);
+            expect(response.body).toHaveProperty('error');
+            expect(response.body.error).toBe('Invalid username or password');
+        });
+
+        it('should return an error, wrong password', async () => {
             const response = await request(app).post('/api/auth/login').send({
                 username: 'testuser',
                 password: 'wrongpassword'

@@ -100,7 +100,6 @@ router.get('/search', async (req, res) => {
         }
 
         const notes = await noteModel.searchUserNotes(req.user.id, query);
-        console.log('Search results:', notes);
         res.status(200).json(notes || []);
     } catch (error) {
         console.error('Search error:', error);
