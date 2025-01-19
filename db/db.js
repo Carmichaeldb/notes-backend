@@ -21,6 +21,13 @@ const initializeDatabase = async () => {
     try {
         // Read schema file
         const schemaPath = path.join(__dirname, 'schema', 'schema.sql');
+        try {
+            await fs.access(schemaPath);
+            console.log('Schema file found!');
+        } catch (err) {
+            console.error('Schema file not found:', err);
+            return;
+        }
         const schema = await fs.readFile(schemaPath, 'utf8');
         
         // Execute schema
@@ -33,6 +40,7 @@ const initializeDatabase = async () => {
 };
 
 if (process.env.NODE_ENV === 'production') {
+    console.log('Initializing database in production mode');
     initializeDatabase();
 }
 
