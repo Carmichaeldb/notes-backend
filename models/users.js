@@ -1,6 +1,7 @@
 //model for users
 
 const pool = require('../db/db');
+const jwt = require('jsonwebtoken');
 
 // Login User
 const loginUser = async (username, password) => {
@@ -9,9 +10,24 @@ const loginUser = async (username, password) => {
         if (result.rows.length === 0) {
             throw new Error('Invalid username or password');
         }
-        return result.rows[0];
+
+        const user = result.rows[0];
+        
+        const token = jwt.sign(
+            { id: user.id, username: user.username },
+            process.env.JWT_SECRET,
+            { expiresIn: '24h' }
+        );
+
+        return { 
+            user: {
+                id: user.id, 
+                username: user.username, 
+                email: user.email
+            }, token 
+        };
     } catch (error) {
-        // console.error('Error logging in:', error);
+        console.error('Error logging in:', error);
         throw error;
     }
 }
@@ -25,7 +41,7 @@ const getUser = async (userId) => {
         }
         return result.rows[0];
     } catch (error) {
-        // console.error('Error fetching user:', error);
+        console.error('Error fetching user:', error);
         throw error;
     }
 }
@@ -48,7 +64,7 @@ const createUser = async (username, email, password) => {
         const result = await pool.query('INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING *', [username, email, password]);
         return result.rows[0];
     } catch (error) {
-        // console.error('Error creating user:', error);
+        console.error('Error creating user:', error);
         throw error;
     }
 }

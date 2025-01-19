@@ -39,6 +39,19 @@ const getSharedNotes = async (userId) => {
     }
 }
 
+const getNoteById = async (noteId) => {
+    try {
+        const result = await pool.query('SELECT * FROM notes WHERE id = $1', [noteId]);
+        if (result.rows.length === 0) {
+            throw new Error('Note not found');
+        }
+        return result.rows[0];
+    } catch (error) {
+        console.error('Error fetching note by id:', error);
+        throw error;
+    }
+}
+
 // Create Note for User
 const createUserNote = async (userId, title, content) => {
     try {
@@ -116,6 +129,7 @@ const searchUserNotes = async (userId, searchTerm) => {
 module.exports = {
     getUsersNotes,
     getSharedNotes,
+    getNoteById,
     createUserNote,
     updateUserNote,
     deleteUserNote,

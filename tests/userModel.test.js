@@ -92,9 +92,11 @@ describe('User Model', () => {
     describe('Login User', () => {
         it('should return the correct user', async () => {
             const result = await userModel.loginUser('testuser', 'testpassword');
-            expect(result).toHaveProperty('id');
-            expect(result).toHaveProperty('username');
-            expect(result).toHaveProperty('password');
+            expect(result).toHaveProperty('user');
+            expect(result).toHaveProperty('token');
+            expect(result.user).toHaveProperty('id');
+            expect(result.user).toHaveProperty('username');
+            expect(result.user).toHaveProperty('email');
         });
     });
 
