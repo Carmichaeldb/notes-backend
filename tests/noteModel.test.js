@@ -157,7 +157,7 @@ describe('Note Model query tests', () => {
             try { await noteModel.shareUserNote(999, testNoteId, 2);
                 fail('Expected an error to be thrown');
             } catch (error) {
-                expect(error.message).toBe('User does not exist');
+                expect(error.message).toBe('Note not found');
             }
         });
     });
@@ -193,21 +193,15 @@ describe('Note Model query tests', () => {
 
     describe('Fail to search for a note', () => {
         it('should return an error', async () => {
-            try { await noteModel.searchUserNotes(1, 'Failed Note');
-                fail('Expected an error to be thrown');
-            } catch (error) {
-                expect(error.message).toBe('Note not found');
-            }
+            const result = await noteModel.searchUserNotes(1, 'Failed Note');
+            expect(result).toHaveLength(0);
         });
     });
 
-    describe('Fail to search for a other users non-shared notes', () => {
+    describe('Fail to search for other users non-shared notes', () => {
         it('should return an error', async () => {
-            try { await noteModel.searchUserNotes(3, 'Updated Note');
-                fail('Expected an error to be thrown');
-            } catch (error) {
-                expect(error.message).toBe('Note not found');
-            }
+            const result = await noteModel.searchUserNotes(3, 'Updated Note');
+            expect(result).toHaveLength(0);
         });
     });
 

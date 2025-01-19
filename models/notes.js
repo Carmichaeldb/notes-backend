@@ -107,6 +107,15 @@ const deleteUserNote = async (userId, noteId) => {
     try {
         await checkUser(userId);
 
+        const noteCheck = await pool.query(
+            'SELECT * FROM notes WHERE id = $1 AND user_id = $2',
+            [noteId, userId]
+        );
+
+        if (noteCheck.rows.length === 0) {
+            throw new Error('Note not found');
+        }
+
         const result = await pool.query('DELETE FROM notes WHERE id = $1 AND user_id = $2 RETURNING *', [noteId, userId]);
         return result.rows[0];
     } catch (error) {
@@ -118,11 +127,32 @@ const deleteUserNote = async (userId, noteId) => {
 // Share Note with User
 const shareUserNote = async (userId, noteId, sharedWith) => {
     try {
-        await checkUser(userId);
+        const noteCheck = await pool.query(
+            'SELECT * FROM notes WHERE id = $1 AND user_id = $2',
+            [noteId, userId]
+        );
 
+        if (noteCheck.rows.length === 0) {
+            throw new Error('Note not found');
+        }
+
+        // Check if user to share with exists
+        const userCheck = await pool.query(
+            'SELECT id FROM users WHERE id = $1',
+            [sharedWith]
+        );
+
+        if (userCheck.rows.length === 0) {
+            throw new Error('User not found');
+        }
+        console.log('Attempting to insert shared note');
         const result = await pool.query('INSERT INTO shared_notes (note_id, shared_by, shared_with) VALUES ($1, $2, $3) RETURNING *', [noteId, userId, sharedWith]);
+
         return result.rows[0];
     } catch (error) {
+        if (error.code === '23505') { // Unique violation
+            throw new Error('Note already shared with this user');
+        }
         console.error('Error sharing user note:', error);
         throw error;
     }
@@ -140,9 +170,6 @@ const searchUserNotes = async (userId, searchTerm) => {
             ORDER BY notes.created_at DESC`,
             [userId, `%${searchTerm}%`]
         );
-        if (result.rows.length === 0) {
-            throw new Error('Note not found');
-        }
         return result.rows;
     } catch (error) {
         console.error('Error searching user notes:', error);

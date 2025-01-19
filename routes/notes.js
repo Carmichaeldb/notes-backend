@@ -55,14 +55,57 @@ router.put('/notes/:id', async (req, res) => {
 
 // Delete note
 router.delete('/notes/:id', async (req, res) => {
+    try {
+        const note = await noteModel.deleteUserNote(req.user.id, req.params.id);
+        res.status(200).json({ message: 'Note deleted successfully' });
+    } catch (error) {
+        res.status(404).json({ error: error.message });
+    }
 });
 
 // Share note
 router.post('/notes/:id/share', async (req, res) => {
+    try {
+        const { sharedWith } = req.body;
+        
+        if (!sharedWith) {
+            return res.status(400).json({ error: 'Missing sharedWith' });
+        }
+
+        const result = await noteModel.shareUserNote(
+            req.user.id,
+            req.params.id,
+            sharedWith
+        );
+
+        res.status(200).json({ message: 'Note shared successfully' });
+    } catch (error) {
+        if (error.message === 'Note not found' || error.message === 'User not found') {
+            res.status(404).json({ error: error.message });
+        } else if (error.message === 'Note already shared with this user') {
+            res.status(400).json({ error: error.message });
+        } else {
+            res.status(500).json({ error: error.message });
+        }
+    }
 });
 
 // Search notes
 router.get('/search', async (req, res) => {
+        try {
+        const { query } = req.query;
+
+        if (!query) {
+            return res.status(400).json({ error: 'Search query is required' });
+        }
+
+        const notes = await noteModel.searchUserNotes(req.user.id, query);
+        console.log('Search results:', notes);
+        res.status(200).json(notes || []);
+    } catch (error) {
+        console.error('Search error:', error);
+        res.status(500).json({ error: error.message });
+    }
 });
 
 module.exports = router;
